@@ -29,7 +29,6 @@ class TestPerformance(object):
     def make_random_dataset(self, datasize=10000, seq_length=20, n_input=100):
         # Todo: ここを最大長を指定してランダムな長さにする
         dataset = np.random.normal(0.0, 1.0, (datasize, seq_length, n_input))
-        print dataset
         dataset = [Variable(self.xp.array(d, dtype=self.xp.float32)) for d in dataset.tolist()]
         return dataset
 
@@ -63,13 +62,16 @@ def test_performance(args):
         cuda.get_device(args.gpu).use()
         nn.to_gpu()
 
+    # n epoch
     for i in xrange(args.n_epoch):
         start_time = test_obj.start_time()
         for input_data in dataset:
             hx = chainer.Variable(xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32))
             cx = chainer.Variable(xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32))
             ys = nn(hx, cx, input_data)
-            loss = sum([F.sum(_ys, axis=0) for _ys in ys])
+            # loss
+            loss = sum([F.sum(_ys) for _ys in ys])
+            # update
             nn.zerograds()
             loss.backward()
             opt.update()

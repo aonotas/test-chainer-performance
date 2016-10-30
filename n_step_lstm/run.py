@@ -23,13 +23,15 @@ class TestPerformance(object):
         super(TestPerformance, self).__init__()
         self.arg = arg
         self.xp = xp
-        dataset = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input)
+        dataset = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input, 'OFF')
+        dataset_test = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input, 'ON')
         self.dataset = self.make_minibatch(dataset, args.batchsize)
-        
-    def make_random_dataset(self, datasize=10000, seq_length=20, n_input=100):
+        self.dataset_test = self.make_minibatch(dataset_test, args.batchsize)
+    
+    def make_random_dataset(self, datasize=10000, seq_length=20, n_input=100, volatile='OFF'):
         # Todo: ここを最大長を指定してランダムな長さにする
         dataset = np.random.normal(0.0, 1.0, (datasize, seq_length, n_input))
-        dataset = [Variable(self.xp.array(d, dtype=self.xp.float32)) for d in dataset.tolist()]
+        dataset = [Variable(self.xp.array(d, dtype=self.xp.float32), volatile=volatile) for d in dataset.tolist()]
         return dataset
 
     def make_minibatch(self, dataset, batchsize):
@@ -53,6 +55,7 @@ def test_performance(args):
     xp = cuda.cupy if args.gpu >= 0 else np
     test_obj = TestPerformance(xp, args)
     dataset = test_obj.dataset
+    dataset_test = test_obj.dataset_test
 
     nn = net.NStepLSTM(n_layer=args.n_layer, n_vocab=args.n_vocab, n_input=args.n_input, n_units=args.n_units, dropout=args.dropout)
     opt = optimizers.SGD()
@@ -64,21 +67,55 @@ def test_performance(args):
 
     # n epoch
     for i in xrange(args.n_epoch):
-        start_time = test_obj.start_time()
+        sum_forward_time = 0.0
+        sum_backward_time = 0.0
         for input_data in dataset:
-            hx = chainer.Variable(xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32))
-            cx = chainer.Variable(xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32))
+            hx = chainer.Variable(
+                    xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
+            cx = chainer.Variable(
+                    xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
+            # forward
+            start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)
+            end_time = test_obj.end_time()
+            time_forward = end_time - start_time
+            
             # loss
             loss = sum([F.sum(_ys) for _ys in ys])
             # update
             nn.zerograds()
+            start_time = test_obj.start_time()
+            # backward
             loss.backward()
+            end_time = test_obj.end_time()
+            time_backward = end_time - start_time
             opt.update()
 
+            sum_forward_time += time_forward
+            sum_backward_time += time_backward
+            # print "time_forward :", time_forward
+            # print "time_backward:", time_backward
+
+        sum_forward_time_test = 0.0
+        # test data
+        for input_data in dataset_test:
+            hx = chainer.Variable(
+                    xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
+            cx = chainer.Variable(
+                    xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
+            # forward
+            start_time = test_obj.start_time()
+            ys = nn(hx, cx, input_data)
+            end_time = test_obj.end_time()
+            time_forward = end_time - start_time
+
+            sum_forward_time_test += time_forward
+            # print "time_forward (test) :", time_forward
             # print ys[0].data.shape
-        end_time = test_obj.end_time()
-        print end_time - start_time
+
+        print "time_forward       :", sum_forward_time
+        print "time_forward (test):", sum_forward_time_test
+        print "time_backward      :", sum_backward_time
 
 
 if __name__ == '__main__':

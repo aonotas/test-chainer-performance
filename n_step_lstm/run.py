@@ -68,6 +68,12 @@ def test_performance(args):
     avg_time_forward = []
     avg_time_backward = []
     avg_time_forward_test = []
+
+    # initialize 
+    hx = chainer.Variable(
+            xp.zeros((args.n_layer, len(dataset[0]), args.n_units), dtype=xp.float32), volatile="auto")
+    cx = chainer.Variable(
+            xp.zeros((args.n_layer, len(dataset[0]), args.n_units), dtype=xp.float32), volatile="auto")
     # n epoch
     for i in xrange(args.n_epoch):
         sum_forward_time = 0.0

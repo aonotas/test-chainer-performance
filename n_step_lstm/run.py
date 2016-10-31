@@ -81,7 +81,7 @@ def test_performance(args):
             start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)
             if args.gpu >= 0:
-                chainer.cuda.to_cpu(ys[0])
+                chainer.cuda.to_cpu(ys[0].data)
 
             end_time = test_obj.end_time()
             time_forward = end_time - start_time
@@ -94,7 +94,7 @@ def test_performance(args):
             # backward
             loss.backward()
             if args.gpu >= 0:
-                chainer.cuda.to_cpu(loss)
+                chainer.cuda.to_cpu(loss.data)
             end_time = test_obj.end_time()
             time_backward = end_time - start_time
             opt.update()
@@ -115,7 +115,7 @@ def test_performance(args):
             start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)
             if args.gpu >= 0:
-                chainer.cuda.to_cpu(ys[0])
+                chainer.cuda.to_cpu(ys[0].data)
             end_time = test_obj.end_time()
             time_forward = end_time - start_time
 

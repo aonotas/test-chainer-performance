@@ -77,6 +77,8 @@ def test_performance(args):
                     xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
             cx = chainer.Variable(
                     xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
+            if args.gpu >= 0:
+                chainer.cuda.to_cpu(cx.data)
             # forward
             start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)
@@ -110,6 +112,8 @@ def test_performance(args):
                     xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
             cx = chainer.Variable(
                     xp.zeros((args.n_layer, len(input_data), args.n_units), dtype=xp.float32), volatile="auto")
+            if args.gpu >= 0:
+                chainer.cuda.to_cpu(cx.data)
             # forward
             start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)

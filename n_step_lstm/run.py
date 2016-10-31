@@ -65,6 +65,9 @@ def test_performance(args):
         cuda.get_device(args.gpu).use()
         nn.to_gpu()
 
+    avg_time_forward = []
+    avg_time_backward = []
+    avg_time_forward_test = []
     # n epoch
     for i in xrange(args.n_epoch):
         sum_forward_time = 0.0
@@ -77,6 +80,9 @@ def test_performance(args):
             # forward
             start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)
+            if args.gpu >= 0:
+                chainer.cuda.to_cpu(ys[0])
+
             end_time = test_obj.end_time()
             time_forward = end_time - start_time
             
@@ -87,6 +93,8 @@ def test_performance(args):
             start_time = test_obj.start_time()
             # backward
             loss.backward()
+            if args.gpu >= 0:
+                chainer.cuda.to_cpu(loss)
             end_time = test_obj.end_time()
             time_backward = end_time - start_time
             opt.update()
@@ -106,6 +114,8 @@ def test_performance(args):
             # forward
             start_time = test_obj.start_time()
             ys = nn(hx, cx, input_data)
+            if args.gpu >= 0:
+                chainer.cuda.to_cpu(ys[0])
             end_time = test_obj.end_time()
             time_forward = end_time - start_time
 
@@ -113,9 +123,17 @@ def test_performance(args):
             # print "time_forward (test) :", time_forward
             # print ys[0].data.shape
 
-        print "time_forward       :", sum_forward_time
-        print "time_forward (test):", sum_forward_time_test
-        print "time_backward      :", sum_backward_time
+        avg_time_forward.append(sum_forward_time)
+        avg_time_forward_test.append(sum_forward_time_test)
+        avg_time_backward.append(sum_backward_time)
+        print i, " time_forward       :", sum_forward_time
+        print i, " time_forward (test):", sum_forward_time_test
+        print i, " time_backward      :", sum_backward_time
+
+    print "avg_time_forward:", float(sum(avg_time_forward)) / len(avg_time_forward)
+    print "avg_time_forward_test:", float(sum(avg_time_forward_test)) / len(avg_time_forward_test)
+    print "avg_time_backward:", float(sum(avg_time_backward)) / len(avg_time_backward)
+
 
 
 if __name__ == '__main__':

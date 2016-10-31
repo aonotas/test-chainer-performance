@@ -57,7 +57,7 @@ def test_performance(args):
     dataset = test_obj.dataset
     dataset_test = test_obj.dataset_test
 
-    nn = net.NStepLSTM(n_layer=args.n_layer, n_vocab=args.n_vocab, n_input=args.n_input, n_units=args.n_units, dropout=args.dropout)
+    nn = net.NStepLSTM(n_layer=args.n_layer, n_vocab=args.n_vocab, n_input=args.n_input, n_units=args.n_units, dropout=args.dropout, cudnn=args.cudnn)
     opt = optimizers.SGD()
     opt.setup(nn)
 
@@ -82,7 +82,6 @@ def test_performance(args):
             ys = nn(hx, cx, input_data)
             if args.gpu >= 0:
                 chainer.cuda.to_cpu(ys[0].data)
-
             end_time = test_obj.end_time()
             time_forward = end_time - start_time
             
@@ -148,7 +147,8 @@ if __name__ == '__main__':
     parser.add_argument('--n_layer', dest='n_layer', type=int, default=1, help='n_layer')
     parser.add_argument('--dropout', dest='dropout', type=float, default=0.0, help='dropout')
     parser.add_argument('--seq_length', type=int, dest='seq_length', default=5, help='seq_length')
-    parser.add_argument('--datasize', type=int, dest='datasize', default=10000, help='seq_length')
+    parser.add_argument('--datasize', type=int, dest='datasize', default=10000, help='datasize')
+    parser.add_argument('--cudnn', default=1, type=int, help='cudnn')
 
 
     parser.add_argument('--n_epoch', dest='n_epoch', type=int, default=50, help='n_epoch')

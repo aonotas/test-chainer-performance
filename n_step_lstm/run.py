@@ -128,6 +128,7 @@ def test_performance(args):
         print i, " time_forward       :", sum_forward_time
         print i, " time_forward (test):", sum_forward_time_test
         print i, " time_backward      :", sum_backward_time
+        print '------------------------'
 
     print "avg_time_forward:", float(sum(avg_time_forward)) / len(avg_time_forward)
     print "avg_time_forward_test:", float(sum(avg_time_forward_test)) / len(avg_time_forward_test)

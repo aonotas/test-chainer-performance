@@ -16,3 +16,4 @@ class NStepLSTM(chainer.Chain):
     def __call__(self, hx, cx, input_x, train=True):
         hy, cy, ys = self.l1(hx, cx, input_x, train=train)
         return ys
+

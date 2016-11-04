@@ -5,6 +5,7 @@ import six
 import time
 import numpy as np
 import random
+np.random.seed(1234)
 random.seed(1234)
 
 import chainer
@@ -23,15 +24,19 @@ class TestPerformance(object):
         super(TestPerformance, self).__init__()
         self.arg = arg
         self.xp = xp
-        dataset = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input, 'OFF')
-        dataset_test = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input, 'ON')
+        dataset = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input, 'OFF', args.random_length)
+        dataset_test = self.make_random_dataset(arg.datasize, args.seq_length, args.n_input, 'ON', args.random_length)
         self.dataset = self.make_minibatch(dataset, args.batchsize)
         self.dataset_test = self.make_minibatch(dataset_test, args.batchsize)
     
-    def make_random_dataset(self, datasize=10000, seq_length=20, n_input=100, volatile='OFF'):
-        # Todo: ここを最大長を指定してランダムな長さにする
-        dataset = np.random.normal(0.0, 1.0, (datasize, seq_length, n_input))
-        dataset = [Variable(self.xp.array(d, dtype=self.xp.float32), volatile=volatile) for d in dataset.tolist()]
+    def make_random_dataset(self, datasize=10000, seq_length=20, n_input=100, volatile='OFF', random_length=False):
+        if random_length:
+            # Todo: ここを最大長を指定してランダムな長さにする
+            dataset = [np.random.normal(0.0, 1.0, (random.randint(1, seq_length), n_input)) for _ in xrange(datasize)]
+        else:
+            dataset = np.random.normal(0.0, 1.0, (datasize, seq_length, n_input))
+            dataset = dataset.tolist()
+        dataset = [Variable(self.xp.array(d, dtype=self.xp.float32), volatile=volatile) for d in dataset]
         return dataset
 
     def make_minibatch(self, dataset, batchsize):
@@ -153,6 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_layer', dest='n_layer', type=int, default=1, help='n_layer')
     parser.add_argument('--dropout', dest='dropout', type=float, default=0.0, help='dropout')
     parser.add_argument('--seq_length', type=int, dest='seq_length', default=5, help='seq_length')
+    parser.add_argument('--random_length', dest='random_length', type=int, default=0, help='random_length')
     parser.add_argument('--datasize', type=int, dest='datasize', default=10000, help='datasize')
     parser.add_argument('--cudnn', default=1, type=int, help='cudnn')
 

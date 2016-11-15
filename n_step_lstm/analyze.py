@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os.path
 
 def read(filename):
     times = []
@@ -41,10 +42,33 @@ def read(filename):
     times = [time_forward, time_forward_test, time_backward]
     return namespace_dict, avg_times, times
 
+def is_file_exist(filename):
+    return os.path.isfile(filename)
+
+def get_filesize(path):
+    return os.path.getsize(path)
+
 def show(filename):
     namespace_dict, avg_times, times = read(filename=filename)
-    params = ["cudnn", "batchsize", "seq_length", "n_layer", "n_input", "n_units"]
+    params = ["batchsize", "seq_length", "random_length", "n_layer", "n_input", "n_units", "dropout"]
     values = [namespace_dict[param] for param in params] + [str(l) for l in avg_times]
+
+    filename_cudnn = filename.replace('cudnn-0', 'cudnn-1')
+    if not is_file_exist(filename_cudnn):
+        return None
+    if get_filesize(filename_cudnn) < 1000:
+        return None
+    # CUDNN
+    namespace_dict, avg_times_cudnn, times_cudnn = read(filename=filename_cudnn)
+    values += [str(l) for l in avg_times_cudnn]
+
+    # 倍率
+    values += map(str, [avg_times[i]/avg_times_cudnn[i] for i in xrange(3)])
+
+    # 総合時間
+    values += map(str, [sum(times[i]) for i in xrange(3)])
+    values += map(str, [sum(times_cudnn[i]) for i in xrange(3)])
+
     print "\t".join(values)
 
 
@@ -52,8 +76,14 @@ def show(filename):
 if __name__ == '__main__':
     # filename = "./log/log_datasize-10000_n_input-128_n_units-512_batchsize-128_seq_length-5_cudnn-1_n_layer-2_gpu-0_n_epoch-10.txt"
     
-    import glob
-    log_filenames = glob.glob("./log/*.txt")
-    # print log_filenames
-    for filename in log_filenames:
-        show(filename)
+    # import glob
+    # log_filenames = glob.glob("./log/*.txt")
+    # # print log_filenames
+    # for filename in log_filenames:
+    #     show(filename)
+    import sys
+    filename = sys.argv[1]
+    for l in open(filename):
+        l = l.strip()
+        if "cudnn-0" in l:
+            show(l)

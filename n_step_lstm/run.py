@@ -68,7 +68,7 @@ def test_performance(args):
 
     if args.gpu >= 0:
         cuda.get_device(args.gpu).use()
-        nn.to_gpu()
+        nn.to_gpu(args.gpu)
 
     avg_time_forward = []
     avg_time_backward = []

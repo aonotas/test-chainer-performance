@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import six
 import time
 import numpy as np
@@ -58,6 +57,9 @@ class TestPerformance(object):
 
 
 def test_performance(args):
+    if args.gpu >= 0:
+        cuda.init()
+        cuda.get_device(args.gpu).use()
     xp = cuda.cupy if args.gpu >= 0 else np
     test_obj = TestPerformance(xp, args)
     dataset = test_obj.dataset
@@ -68,7 +70,6 @@ def test_performance(args):
     opt.setup(nn)
 
     if args.gpu >= 0:
-        cuda.get_device(args.gpu).use()
         nn.to_gpu()
 
     avg_time_forward = []

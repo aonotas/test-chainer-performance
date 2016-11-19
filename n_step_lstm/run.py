@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 import six
 import time
 import numpy as np
@@ -68,7 +69,7 @@ def test_performance(args):
 
     if args.gpu >= 0:
         cuda.get_device(args.gpu).use()
-        nn.to_gpu(args.gpu)
+        nn.to_gpu()
 
     avg_time_forward = []
     avg_time_backward = []

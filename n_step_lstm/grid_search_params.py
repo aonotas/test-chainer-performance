@@ -10,10 +10,10 @@ Example:
 
 params = {}
 params["n_layer"] = [1, 2, 3]
-params["batchsize"] = [31, 32, 100, 127, 128, 200, 255, 256]
-params["n_input"] = [128, 256, 512]
-params["n_units"] = [128, 256, 512]
-params["seq_length"] = [5, 20, 50, 100]
+params["batchsize"] = [127, 128, 200, 255, 256]
+params["n_input"] = [128, 512]
+params["n_units"] = [128, 512]
+params["seq_length"] = [5, 25, 50]
 params["random_length"] = [0, 1]
 params["cudnn"] = [1, 0]
 params["dropout"] = [0.0, 0.5]

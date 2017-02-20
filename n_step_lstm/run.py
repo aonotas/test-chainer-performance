@@ -18,6 +18,8 @@ from chainer import Variable
 
 import net
 
+import timer
+
 class TestPerformance(object):
     """TestPerformance"""
     def __init__(self, xp, arg):
@@ -88,24 +90,30 @@ def test_performance(args):
             if args.gpu >= 0:
                 chainer.cuda.to_cpu(cx.data)
             # forward
-            start_time = test_obj.start_time()
-            ys = nn(hx, cx, input_data)
-            if args.gpu >= 0:
-                chainer.cuda.to_cpu(ys[0].data)
-            end_time = test_obj.end_time()
-            time_forward = end_time - start_time
+            # start_time = test_obj.start_time()
+            with timer.get_timer(xp) as t:
+                ys = nn(hx, cx, input_data)
+
+            time_forward = t.total_time()
+            
+            # if args.gpu >= 0:
+            #     chainer.cuda.to_cpu(ys[0].data)
+            # end_time = test_obj.end_time()
+            # time_forward = end_time - start_time
             
             # loss
             loss = sum([F.sum(_ys) for _ys in ys])
             # update
             nn.zerograds()
-            start_time = test_obj.start_time()
+            # start_time = test_obj.start_time()
             # backward
-            loss.backward()
-            if args.gpu >= 0:
-                chainer.cuda.to_cpu(loss.data)
-            end_time = test_obj.end_time()
-            time_backward = end_time - start_time
+            with timer.get_timer(xp) as t:
+                loss.backward()
+            time_backward = t.total_time()
+            # if args.gpu >= 0:
+            #     chainer.cuda.to_cpu(loss.data)
+            # end_time = test_obj.end_time()
+            # time_backward = end_time - start_time
             opt.update()
 
             sum_forward_time += time_forward
@@ -123,12 +131,15 @@ def test_performance(args):
             if args.gpu >= 0:
                 chainer.cuda.to_cpu(cx.data)
             # forward
-            start_time = test_obj.start_time()
-            ys = nn(hx, cx, input_data)
-            if args.gpu >= 0:
-                chainer.cuda.to_cpu(ys[0].data)
-            end_time = test_obj.end_time()
-            time_forward = end_time - start_time
+            with timer.get_timer(xp) as t:
+                ys = nn(hx, cx, input_data)
+            time_forward = t.total_time()
+            # start_time = test_obj.start_time()
+            # ys = nn(hx, cx, input_data)
+            # if args.gpu >= 0:
+            #     chainer.cuda.to_cpu(ys[0].data)
+            # end_time = test_obj.end_time()
+            # time_forward = end_time - start_time
 
             sum_forward_time_test += time_forward
             # print "time_forward (test) :", time_forward

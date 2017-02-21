@@ -16,9 +16,9 @@ def pick_up_retry_setting(filename):
 
         log_filename = l.split('> ')[-1]
         size = 0
-        if not os.path.exists(log_filename):
+        if os.path.exists(log_filename):
             size = get_filesize(log_filename)
-            
+
         if size < 1000:
             print log_filename
             print size
